@@ -1046,22 +1046,36 @@ function calc(){
   res.style.display='block';
   setTimeout(function(){res.scrollIntoView({behavior:'smooth',block:'start'});},80);
 
-  // Store results for thank you page (localStorage persists across tabs)
-  try{
-    localStorage.setItem('bf_cal', cal);
-    localStorage.setItem('bf_bmi', bmiR);
-    localStorage.setItem('bf_bmi_label', bmiLabel.replace(' ✓',''));
-    localStorage.setItem('bf_bmr', Math.round(bmr));
-    localStorage.setItem('bf_tdee', Math.round(tdee));
-    localStorage.setItem('bf_prot', pG);
-    localStorage.setItem('bf_carb', cG);
-    localStorage.setItem('bf_fat', fG);
-    localStorage.setItem('bf_water', waterL);
-    localStorage.setItem('bf_goal', goal);
-    localStorage.setItem('bf_weight', parseFloat(unit==='imperial'?(w*2.20462).toFixed(1):w.toFixed(1)));
-    localStorage.setItem('bf_unit', unit);
-    localStorage.setItem('bf_iw', iwStr);
-  }catch(e){}
+  // Store results for thank you page.
+  // Cookies are used instead of localStorage because index.html runs inside a
+  // Google Sites iframe — Chrome blocks localStorage for third-party iframes.
+  // Cookies (SameSite=None;Secure or plain session cookies) survive across tabs
+  // and are readable by relay.html on the same origin.
+  (function(){
+    var data = {
+      bf_cal: cal,
+      bf_bmi: bmiR,
+      bf_bmi_label: bmiLabel.replace(' ✓',''),
+      bf_bmr: String(Math.round(bmr)),
+      bf_tdee: String(Math.round(tdee)),
+      bf_prot: String(pG),
+      bf_carb: String(cG),
+      bf_fat:  String(fG),
+      bf_water: String(waterL),
+      bf_goal: goal,
+      bf_weight: String(parseFloat(unit==='imperial'?(w*2.20462).toFixed(1):w.toFixed(1))),
+      bf_unit: unit,
+      bf_iw: iwStr
+    };
+    var expires = new Date(Date.now() + 2*60*60*1000).toUTCString(); // 2 hours
+    // Try localStorage first (works in direct-visit scenarios)
+    try{ localStorage.setItem('bf_data', JSON.stringify(data)); }catch(e){}
+    // Always also write a cookie (works inside Google Sites iframe)
+    try{
+      document.cookie = 'bf_data=' + encodeURIComponent(JSON.stringify(data)) +
+        '; expires=' + expires + '; path=/; SameSite=Lax';
+    }catch(e){}
+  })();
 }
 
 

@@ -19,18 +19,30 @@
 // It lives on the same origin as index.html so it can read localStorage,
 // then immediately forwards to thankyou.html with all values as URL params.
 (function(){
-  var keys = [
-    ['cal','bf_cal'],['bmi','bf_bmi'],['bmi_label','bf_bmi_label'],
-    ['bmr','bf_bmr'],['tdee','bf_tdee'],['prot','bf_prot'],
-    ['carb','bf_carb'],['fat','bf_fat'],['water','bf_water'],
-    ['goal','bf_goal'],['weight','bf_weight'],['unit','bf_unit'],['iw','bf_iw']
-  ];
+  var keys = ['cal','bmi','bmi_label','bmr','tdee','prot','carb','fat','water','goal','weight','unit','iw'];
+
+  // Read data — try cookie first (survives Google Sites iframe restrictions),
+  // fall back to localStorage (works in direct-visit / non-iframe scenarios).
+  var data = {};
+  try{
+    var ck = document.cookie.split(';').map(function(c){ return c.trim(); })
+              .find(function(c){ return c.startsWith('bf_data='); });
+    if(ck) data = JSON.parse(decodeURIComponent(ck.split('=').slice(1).join('=')));
+  }catch(e){}
+  if(!data.bf_cal){
+    try{
+      var ls = localStorage.getItem('bf_data');
+      if(ls) data = JSON.parse(ls);
+    }catch(e){}
+  }
+
   var params = keys.map(function(k){
-    return k[0] + '=' + encodeURIComponent(localStorage.getItem(k[1]) || '');
+    return k + '=' + encodeURIComponent(data['bf_' + k] || '');
   }).join('&');
 
-  // Clear localStorage so stale values never bleed into a future visitor's session
-  keys.forEach(function(k){ localStorage.removeItem(k[1]); });
+  // Clear both storages so stale values never bleed into a future visitor's session
+  try{ document.cookie = 'bf_data=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'; }catch(e){}
+  try{ localStorage.removeItem('bf_data'); }catch(e){}
 
   window.location.replace('thankyou.html?' + params);
 })();
