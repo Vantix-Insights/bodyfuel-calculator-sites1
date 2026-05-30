@@ -600,7 +600,9 @@ function getParam(urlParams, key, ssKey){
   return urlParams.get(key) || localStorage.getItem(ssKey);
 }
 var urlParams = new URLSearchParams(window.location.search);
-var hasUrlData = urlParams.has('tdee') || urlParams.has('cal');
+// hasUrlData = arrived via the emailed link (has calc data AND the from=email flag)
+// URL params from relay.html have calc data but NOT from=email, so gate stays up
+var hasUrlData = (urlParams.has('tdee') || urlParams.has('cal')) && urlParams.get('from') === 'email';
 
 var cal      = getParam(urlParams, 'cal',       'bf_cal');
 var bmi      = getParam(urlParams, 'bmi',       'bf_bmi');
@@ -766,7 +768,7 @@ function submitGateEmail(){
     'unit='      + encodeURIComponent(unit      || ''),
     'iw='        + encodeURIComponent(iw        || '')
   ].join('&');
-  var resultsLink = BASE_URL + '?' + resultParams;
+  var resultsLink = BASE_URL + '?' + resultParams + '&from=email';
 
   fetch('https://api.brevo.com/v3/smtp/email', {
     method: 'POST',
