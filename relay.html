@@ -29,6 +29,9 @@
     return k[0] + '=' + encodeURIComponent(localStorage.getItem(k[1]) || '');
   }).join('&');
 
+  // Clear localStorage so stale values never bleed into a future visitor's session
+  keys.forEach(function(k){ localStorage.removeItem(k[1]); });
+
   window.location.replace('thankyou.html?' + params);
 })();
 </script>

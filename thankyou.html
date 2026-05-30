@@ -594,15 +594,24 @@ footer a{color:var(--muted);text-decoration:underline;}
 <script>
 function toggleMenu(){document.getElementById('nav-hbg').classList.toggle('open');document.getElementById('nav-mob').classList.toggle('open');}
 // ── Read personalized numbers: URL params first, localStorage as fallback ──
-// URL params are used when the user arrives via the emailed link.
-// localStorage is used when navigating directly from the calculator.
-function getParam(urlParams, key, ssKey){
-  return urlParams.get(key) || localStorage.getItem(ssKey);
-}
+// URL params are present when arriving via relay.html (CPA flow) or emailed link.
+// localStorage fallback is ONLY used when there are NO URL params at all
+// (e.g. direct navigation from the calculator on the same device).
+// When URL params ARE present we never touch localStorage — this prevents
+// stale values from a previous user/session bleeding in.
 var urlParams = new URLSearchParams(window.location.search);
+var hasAnyUrlParams = urlParams.has('cal') || urlParams.has('tdee');
+
+function getParam(urlParams, key, ssKey){
+  var fromUrl = urlParams.get(key);
+  if(fromUrl !== null) return fromUrl;          // URL param present (even if empty string)
+  if(hasAnyUrlParams) return '';                // Other URL params exist -> don't trust localStorage
+  return localStorage.getItem(ssKey) || '';    // Pure direct visit -> use localStorage
+}
+
 // hasUrlData = arrived via the emailed link (has calc data AND the from=email flag)
 // URL params from relay.html have calc data but NOT from=email, so gate stays up
-var hasUrlData = (urlParams.has('tdee') || urlParams.has('cal')) && urlParams.get('from') === 'email';
+var hasUrlData = hasAnyUrlParams && urlParams.get('from') === 'email';
 
 var cal      = getParam(urlParams, 'cal',       'bf_cal');
 var bmi      = getParam(urlParams, 'bmi',       'bf_bmi');
