@@ -593,11 +593,11 @@ footer a{color:var(--muted);text-decoration:underline;}
 
 <script>
 function toggleMenu(){document.getElementById('nav-hbg').classList.toggle('open');document.getElementById('nav-mob').classList.toggle('open');}
-// ── Read personalized numbers: URL params first, sessionStorage as fallback ──
+// ── Read personalized numbers: URL params first, localStorage as fallback ──
 // URL params are used when the user arrives via the emailed link.
-// sessionStorage is used when navigating directly from the calculator.
+// localStorage is used when navigating directly from the calculator.
 function getParam(urlParams, key, ssKey){
-  return urlParams.get(key) || sessionStorage.getItem(ssKey);
+  return urlParams.get(key) || localStorage.getItem(ssKey);
 }
 var urlParams = new URLSearchParams(window.location.search);
 var hasUrlData = urlParams.has('tdee') || urlParams.has('cal');
