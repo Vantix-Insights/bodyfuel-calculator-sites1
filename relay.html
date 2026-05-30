@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>BodyFuel – Loading your results…</title>
+<style>
+  body{background:#080810;color:#eeeef5;font-family:sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;flex-direction:column;gap:16px;}
+  .spinner{width:36px;height:36px;border:3px solid #252535;border-top-color:#d4f53c;border-radius:50%;animation:spin 0.7s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  p{font-size:14px;color:#6b6b8a;}
+</style>
+</head>
+<body>
+<div class="spinner"></div>
+<p>Loading your personal results…</p>
+<script>
+// This page is the CPAGrip redirect target.
+// It lives on the same origin as index.html so it can read localStorage,
+// then immediately forwards to thankyou.html with all values as URL params.
+(function(){
+  var keys = [
+    ['cal','bf_cal'],['bmi','bf_bmi'],['bmi_label','bf_bmi_label'],
+    ['bmr','bf_bmr'],['tdee','bf_tdee'],['prot','bf_prot'],
+    ['carb','bf_carb'],['fat','bf_fat'],['water','bf_water'],
+    ['goal','bf_goal'],['weight','bf_weight'],['unit','bf_unit'],['iw','bf_iw']
+  ];
+  var params = keys.map(function(k){
+    return k[0] + '=' + encodeURIComponent(localStorage.getItem(k[1]) || '');
+  }).join('&');
+
+  window.location.replace('thankyou.html?' + params);
+})();
+</script>
+</body>
+</html>
