@@ -15,36 +15,23 @@
 <div class="spinner"></div>
 <p>Loading your personal results…</p>
 <script>
-// This page is the CPAGrip redirect target.
-// It lives on the same origin as index.html so it can read localStorage,
-// then immediately forwards to thankyou.html with all values as URL params.
+// CPAGrip redirect target.
+// index.html encoded all calc values as ?aff_sub=ENCODED_PARAMS on the CPA URL.
+// CPAGrip passes that value through to this page as ?aff_sub=ENCODED_PARAMS.
+// We decode it and forward straight to thankyou.html.
 (function(){
-  var keys = ['cal','bmi','bmi_label','bmr','tdee','prot','carb','fat','water','goal','weight','unit','iw'];
+  var urlParams = new URLSearchParams(window.location.search);
 
-  // Read data — try cookie first (survives Google Sites iframe restrictions),
-  // fall back to localStorage (works in direct-visit / non-iframe scenarios).
-  var data = {};
-  try{
-    var ck = document.cookie.split(';').map(function(c){ return c.trim(); })
-              .find(function(c){ return c.startsWith('bf_data='); });
-    if(ck) data = JSON.parse(decodeURIComponent(ck.split('=').slice(1).join('=')));
-  }catch(e){}
-  if(!data.bf_cal){
-    try{
-      var ls = localStorage.getItem('bf_data');
-      if(ls) data = JSON.parse(ls);
-    }catch(e){}
+  // CPAGrip passes the aff_sub value through to the redirect URL
+  var aff_sub = urlParams.get('aff_sub');
+
+  if(aff_sub){
+    // aff_sub contains the already-encoded calc params — forward directly
+    window.location.replace('thankyou.html?' + decodeURIComponent(aff_sub));
+  } else {
+    // Fallback: no aff_sub (e.g. direct visit to relay.html) — go to thankyou with no data
+    window.location.replace('thankyou.html');
   }
-
-  var params = keys.map(function(k){
-    return k + '=' + encodeURIComponent(data['bf_' + k] || '');
-  }).join('&');
-
-  // Clear both storages so stale values never bleed into a future visitor's session
-  try{ document.cookie = 'bf_data=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'; }catch(e){}
-  try{ localStorage.removeItem('bf_data'); }catch(e){}
-
-  window.location.replace('thankyou.html?' + params);
 })();
 </script>
 </body>

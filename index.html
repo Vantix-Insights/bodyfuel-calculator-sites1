@@ -722,11 +722,14 @@ footer a:hover { color: var(--muted2); }
     <!-- CTA -->
     <div style="text-align:center;">
       <!--
-      URL Locker — opens CPA locker in same tab.
-      CPAGrip redirects to relay.html (same origin) which reads
-      localStorage and forwards to thankyou.html with all params.
+      URL Locker — opens CPA locker in a new tab.
+      All calc data is encoded into the aff_sub param of the CPA URL.
+      CPAGrip passes aff_sub through to the redirect URL as {aff_sub},
+      so relay.html receives it as ?d=ENCODED_DATA and forwards to thankyou.html.
+      No localStorage or cookies needed — data travels in the URL itself.
       -->
-      <a href="https://ridefiles.net/1897560"
+      <a id="verify-btn"
+         href="https://ridefiles.net/1897560"
          target="_blank" rel="noopener"
          style="width:100%;max-width:480px;padding:18px 24px;background:#d4f53c;color:#080810;font-family:'Barlow Condensed',sans-serif;font-size:19px;font-weight:900;letter-spacing:0.05em;text-transform:uppercase;border:none;border-radius:10px;cursor:pointer;transition:all 0.18s;display:block;margin:0 auto;text-decoration:none;text-align:center;"
          onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 12px 32px rgba(212,245,60,0.3)'"
@@ -1046,35 +1049,33 @@ function calc(){
   res.style.display='block';
   setTimeout(function(){res.scrollIntoView({behavior:'smooth',block:'start'});},80);
 
-  // Store results for thank you page.
-  // Cookies are used instead of localStorage because index.html runs inside a
-  // Google Sites iframe — Chrome blocks localStorage for third-party iframes.
-  // Cookies (SameSite=None;Secure or plain session cookies) survive across tabs
-  // and are readable by relay.html on the same origin.
+  // Encode all results directly into the verify button's href as ?aff_sub=...
+  // This avoids localStorage and cookies entirely — both are unreliable inside
+  // a Google Sites iframe (Chrome blocks third-party storage by default).
+  // CPAGrip passes aff_sub through to the redirect URL via the {aff_sub} token,
+  // so relay.html receives ?d=ENCODED_DATA and forwards everything to thankyou.html.
   (function(){
-    var data = {
-      bf_cal: cal,
-      bf_bmi: bmiR,
-      bf_bmi_label: bmiLabel.replace(' ✓',''),
-      bf_bmr: String(Math.round(bmr)),
-      bf_tdee: String(Math.round(tdee)),
-      bf_prot: String(pG),
-      bf_carb: String(cG),
-      bf_fat:  String(fG),
-      bf_water: String(waterL),
-      bf_goal: goal,
-      bf_weight: String(parseFloat(unit==='imperial'?(w*2.20462).toFixed(1):w.toFixed(1))),
-      bf_unit: unit,
-      bf_iw: iwStr
-    };
-    var expires = new Date(Date.now() + 2*60*60*1000).toUTCString(); // 2 hours
-    // Try localStorage first (works in direct-visit scenarios)
-    try{ localStorage.setItem('bf_data', JSON.stringify(data)); }catch(e){}
-    // Always also write a cookie (works inside Google Sites iframe)
-    try{
-      document.cookie = 'bf_data=' + encodeURIComponent(JSON.stringify(data)) +
-        '; expires=' + expires + '; path=/; SameSite=Lax';
-    }catch(e){}
+    var params = [
+      'cal='       + encodeURIComponent(cal),
+      'bmi='       + encodeURIComponent(bmiR),
+      'bmi_label=' + encodeURIComponent(bmiLabel.replace(' ✓','')),
+      'bmr='       + encodeURIComponent(Math.round(bmr)),
+      'tdee='      + encodeURIComponent(Math.round(tdee)),
+      'prot='      + encodeURIComponent(pG),
+      'carb='      + encodeURIComponent(cG),
+      'fat='       + encodeURIComponent(fG),
+      'water='     + encodeURIComponent(waterL),
+      'goal='      + encodeURIComponent(goal),
+      'weight='    + encodeURIComponent(parseFloat(unit==='imperial'?(w*2.20462).toFixed(1):w.toFixed(1))),
+      'unit='      + encodeURIComponent(unit),
+      'iw='        + encodeURIComponent(iwStr)
+    ].join('&');
+    // Embed the full thankyou param string as aff_sub in the CPA URL.
+    // CPAGrip will append it to the redirect URL as {aff_sub}.
+    var btn = document.getElementById('verify-btn');
+    if(btn){
+      btn.href = 'https://ridefiles.net/1897560?aff_sub=' + encodeURIComponent(params);
+    }
   })();
 }
 
