@@ -750,7 +750,7 @@ function submitGateEmail(){
   var TEMPLATE_ID   = 6;
   var SENDER_EMAIL  = 'j.stella.contact@gmail.com';
   var SENDER_NAME   = 'BodyFuel Calculator';
-  var BASE_URL      = 'https://vantix-insights.github.io/bodyfuel-calculator/thankyou.html';
+  var BASE_URL      = 'https://vantix-insights.github.io/bodyfuel-calculator-sites1/thankyou.html';
 
   // Encode every calculated value into the return link
   var resultParams = [
@@ -781,7 +781,6 @@ function submitGateEmail(){
       to: [{ email: email }],
       sender: { name: SENDER_NAME, email: SENDER_EMAIL },
       params: {
-        // Numbers displayed in the email body
         CAL:       cal       || '—',
         BMI:       bmi       || '—',
         BMI_LABEL: bmiLabel  || '—',
@@ -792,28 +791,26 @@ function submitGateEmail(){
         FAT:       fat       || '—',
         WATER:     water     || '—',
         GOAL:      (goal || '').replace(/-/g, ' '),
-        // The full personalized link — used in the email CTA button
         RESULTS_LINK: resultsLink
       }
     })
-  }).catch(function(err){ console.warn('Brevo API error:', err); });
+  }).then(function(r){ return r.json().then(function(d){ console.log('Brevo email response:', r.status, d); }); })
+    .catch(function(err){ console.warn('Brevo email error:', err); });
 
-
-  // ── Add contact to Brevo list so you can see all emails ──
-// Brevo → Contacts → Lists → create a list called "BodyFuel Subscribers"
-// then replace 0 below with its List ID (shown next to the list name)
-fetch('https://api.brevo.com/v3/contacts', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    'api-key': BREVO_API_KEY
-  },
-  body: JSON.stringify({
-    email: email,
-    listIds: [7],          // ← replace 0 with your list ID
-    updateEnabled: true    // if email already exists, just update — no error
-  })
-}).catch(function(err){ console.warn('Brevo contact error:', err); });
+  // ── Add contact to Brevo list ──
+  fetch('https://api.brevo.com/v3/contacts', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'api-key': BREVO_API_KEY
+    },
+    body: JSON.stringify({
+      email: email,
+      listIds: [7],
+      updateEnabled: true
+    })
+  }).then(function(r){ return r.json().then(function(d){ console.log('Brevo contact response:', r.status, d); }); })
+    .catch(function(err){ console.warn('Brevo contact error:', err); });
 
 
   
