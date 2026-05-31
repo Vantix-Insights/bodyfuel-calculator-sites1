@@ -593,15 +593,15 @@ footer a{color:var(--muted);text-decoration:underline;}
 
 <script>
 function toggleMenu(){document.getElementById('nav-hbg').classList.toggle('open');document.getElementById('nav-mob').classList.toggle('open');}
-// ── Read personalized numbers: URL params first, localStorage as fallback ──
-// URL params are used when the user arrives via the emailed link.
-// localStorage is used when navigating directly from the calculator.
+// ── Read personalized numbers ──
+// Two arrival modes:
+//   1. Via emailed link → URL has calc params + from=email → skip gate
+//   2. Via CPA completion → CPAGrip redirects to thankyou.html (no params) → read localStorage (written by relay.html)
 function getParam(urlParams, key, ssKey){
   return urlParams.get(key) || localStorage.getItem(ssKey);
 }
 var urlParams = new URLSearchParams(window.location.search);
-// hasUrlData = arrived via the emailed link (has calc data AND the from=email flag)
-// URL params from relay.html have calc data but NOT from=email, so gate stays up
+// Only skip the gate when arriving via the emailed results link
 var hasUrlData = (urlParams.has('tdee') || urlParams.has('cal')) && urlParams.get('from') === 'email';
 
 var cal      = getParam(urlParams, 'cal',       'bf_cal');
@@ -618,7 +618,7 @@ var weight   = parseFloat(getParam(urlParams, 'weight', 'bf_weight'));
 var unit     = getParam(urlParams, 'unit',      'bf_unit');
 var iw       = getParam(urlParams, 'iw',        'bf_iw');
 
-// If arriving via email link, hide the timer bar and gate — already subscribed
+// If arriving via email link (from=email), hide gate — already subscribed
 if(hasUrlData){
   document.addEventListener('DOMContentLoaded', function(){
     var sbar = document.querySelector('.session-bar');

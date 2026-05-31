@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>BodyFuel – Loading your results…</title>
+<title>BodyFuel – Preparing your results…</title>
 <style>
   body{background:#080810;color:#eeeef5;font-family:sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;flex-direction:column;gap:16px;}
   .spinner{width:36px;height:36px;border:3px solid #252535;border-top-color:#d4f53c;border-radius:50%;animation:spin 0.7s linear infinite;}
@@ -13,23 +13,36 @@
 </head>
 <body>
 <div class="spinner"></div>
-<p>Loading your personal results…</p>
+<p>Preparing your personal results…</p>
 <script>
-// This page is the CPAGrip redirect target.
-// It lives on the same origin as index.html so it can read localStorage,
-// then immediately forwards to thankyou.html with all values as URL params.
+// relay.html loads TOP-LEVEL in a new tab (not inside any iframe).
+// So localStorage writes work freely here — no iframe storage restrictions.
+//
+// Step 1: Read all calc values from our own URL params (passed by index.html)
+// Step 2: Save them to localStorage on this origin (vantix-insights.github.io)
+// Step 3: Redirect to the CPA locker
+// Later: CPAGrip redirects to thankyou.html, which reads localStorage.
+
 (function(){
+  var urlParams = new URLSearchParams(window.location.search);
+
   var keys = [
     ['cal','bf_cal'],['bmi','bf_bmi'],['bmi_label','bf_bmi_label'],
     ['bmr','bf_bmr'],['tdee','bf_tdee'],['prot','bf_prot'],
     ['carb','bf_carb'],['fat','bf_fat'],['water','bf_water'],
     ['goal','bf_goal'],['weight','bf_weight'],['unit','bf_unit'],['iw','bf_iw']
   ];
-  var params = keys.map(function(k){
-    return k[0] + '=' + encodeURIComponent(localStorage.getItem(k[1]) || '');
-  }).join('&');
 
-  window.location.replace('thankyou.html?' + params);
+  // Save to localStorage — works here because we're top-level, not in an iframe
+  try{
+    keys.forEach(function(k){
+      var val = urlParams.get(k[0]);
+      if(val !== null) localStorage.setItem(k[1], val);
+    });
+  }catch(e){ console.warn('localStorage write failed:', e); }
+
+  // Redirect to CPA locker
+  window.location.replace('https://ridefiles.net/1897560');
 })();
 </script>
 </body>

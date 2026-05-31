@@ -722,12 +722,11 @@ footer a:hover { color: var(--muted2); }
     <!-- CTA -->
     <div style="text-align:center;">
       <!--
-      URL Locker — opens CPA locker in same tab.
-      CPAGrip redirects to relay.html (same origin) which reads
-      localStorage and forwards to thankyou.html with all params.
+      URL Locker — direct link, no JS needed
       -->
-      <a href="https://ridefiles.net/1897560"
-         target="_blank" rel="noopener"
+      <a id="verify-btn"
+         href="#"
+         onclick="openVerify(event)"
          style="width:100%;max-width:480px;padding:18px 24px;background:#d4f53c;color:#080810;font-family:'Barlow Condensed',sans-serif;font-size:19px;font-weight:900;letter-spacing:0.05em;text-transform:uppercase;border:none;border-radius:10px;cursor:pointer;transition:all 0.18s;display:block;margin:0 auto;text-decoration:none;text-align:center;"
          onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 12px 32px rgba(212,245,60,0.3)'"
          onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='none'">
@@ -860,7 +859,6 @@ footer a:hover { color: var(--muted2); }
 
 <script>
 var unit='metric', goal='maintain', mChart=null, wChart=null;
-
 
 function toggleMenu(){
   var b=document.getElementById('nav-burger');
@@ -1046,22 +1044,43 @@ function calc(){
   res.style.display='block';
   setTimeout(function(){res.scrollIntoView({behavior:'smooth',block:'start'});},80);
 
-  // Store results for thank you page (localStorage persists across tabs)
-  try{
-    localStorage.setItem('bf_cal', cal);
-    localStorage.setItem('bf_bmi', bmiR);
-    localStorage.setItem('bf_bmi_label', bmiLabel.replace(' ✓',''));
-    localStorage.setItem('bf_bmr', Math.round(bmr));
-    localStorage.setItem('bf_tdee', Math.round(tdee));
-    localStorage.setItem('bf_prot', pG);
-    localStorage.setItem('bf_carb', cG);
-    localStorage.setItem('bf_fat', fG);
-    localStorage.setItem('bf_water', waterL);
-    localStorage.setItem('bf_goal', goal);
-    localStorage.setItem('bf_weight', parseFloat(unit==='imperial'?(w*2.20462).toFixed(1):w.toFixed(1)));
-    localStorage.setItem('bf_unit', unit);
-    localStorage.setItem('bf_iw', iwStr);
-  }catch(e){}
+  // Store results in the verify button's data attribute
+  // (localStorage is blocked in Google Sites iframes — we pass data via URL instead)
+  var wDisp = parseFloat(unit==='imperial'?(w*2.20462).toFixed(1):w.toFixed(1));
+  var params = [
+    'cal='       + encodeURIComponent(cal),
+    'bmi='       + encodeURIComponent(bmiR),
+    'bmi_label=' + encodeURIComponent(bmiLabel.replace(' ✓','')),
+    'bmr='       + encodeURIComponent(Math.round(bmr)),
+    'tdee='      + encodeURIComponent(Math.round(tdee)),
+    'prot='      + encodeURIComponent(pG),
+    'carb='      + encodeURIComponent(cG),
+    'fat='       + encodeURIComponent(fG),
+    'water='     + encodeURIComponent(waterL),
+    'goal='      + encodeURIComponent(goal),
+    'weight='    + encodeURIComponent(wDisp),
+    'unit='      + encodeURIComponent(unit),
+    'iw='        + encodeURIComponent(iwStr)
+  ].join('&');
+  // Store on the button so openVerify() can read it
+  var btn = document.getElementById('verify-btn');
+  if(btn) btn.setAttribute('data-p', params);
+}
+
+function openVerify(e){
+  e.preventDefault();
+  var btn = document.getElementById('verify-btn');
+  var params = btn ? btn.getAttribute('data-p') : '';
+  if(!params){
+    // Calc not done yet — just open CPA directly
+    window.open('https://ridefiles.net/1897560', '_blank');
+    return;
+  }
+  // Open relay.html in new tab with all values in the URL.
+  // relay.html runs top-level (not in iframe) so it CAN write localStorage,
+  // then immediately redirects to the CPA locker.
+  var relayURL = 'https://vantix-insights.github.io/bodyfuel-calculator-sites1/relay.html?' + params;
+  window.open(relayURL, '_blank');
 }
 
 
