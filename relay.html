@@ -3,44 +3,48 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>BodyFuel – Saving your results…</title>
+<title>BodyFuel – One more step</title>
 <style>
-  body{background:#080810;color:#eeeef5;font-family:sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;flex-direction:column;gap:16px;}
-  .spinner{width:36px;height:36px;border:3px solid #252535;border-top-color:#d4f53c;border-radius:50%;animation:spin 0.7s linear infinite;}
-  @keyframes spin{to{transform:rotate(360deg)}}
-  p{font-size:14px;color:#6b6b8a;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:#080810;color:#eeeef5;font-family:'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px;}
+  body::before{content:'';position:fixed;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#d4f53c,#ff6b35,#a78bfa);z-index:100;}
+  .card{background:#13131f;border:1px solid #252535;border-radius:16px;padding:36px 28px;max-width:420px;width:100%;text-align:center;}
+  .icon{font-size:48px;margin-bottom:16px;}
+  h1{font-size:22px;font-weight:700;margin-bottom:10px;color:#eeeef5;}
+  p{font-size:14px;color:#9090b0;line-height:1.7;margin-bottom:28px;}
+  .btn{display:block;width:100%;padding:16px 24px;background:#d4f53c;color:#080810;font-size:17px;font-weight:800;letter-spacing:0.04em;text-transform:uppercase;border-radius:10px;text-decoration:none;transition:all 0.18s;}
+  .btn:hover{box-shadow:0 8px 24px rgba(212,245,60,0.3);transform:translateY(-2px);}
+  .note{font-size:11px;color:#6b6b8a;margin-top:14px;}
 </style>
 </head>
 <body>
-<div class="spinner"></div>
-<p>Saving your results…</p>
+<div class="card">
+  <div class="icon">🔐</div>
+  <h1>Your results are saved!</h1>
+  <p>Tap the button below to complete the free verification. It takes about 15 seconds — your personalised nutrition plan opens right after.</p>
+  <a class="btn" id="cpa-btn" href="https://ridefiles.net/1897560">
+    ✅ &nbsp;Start Free Verification
+  </a>
+  <div class="note">No credit card · No payment · Takes ~15 seconds</div>
+</div>
 <script>
-// relay.html opens as a NEW TAB (top-level, not in iframe).
-// It can freely write localStorage on this origin.
-// After saving, it redirects THIS tab to the CPA locker.
-// CPAGrip redirect URL must be set to thankyou.html (not relay.html).
-
+// relay.html loads TOP-LEVEL in a new tab — localStorage writes work freely here.
+// Save all calc values passed in the URL, then let the user tap to go to the CPA locker.
 (function(){
   var urlParams = new URLSearchParams(window.location.search);
-
   var keys = [
     ['cal','bf_cal'],['bmi','bf_bmi'],['bmi_label','bf_bmi_label'],
     ['bmr','bf_bmr'],['tdee','bf_tdee'],['prot','bf_prot'],
     ['carb','bf_carb'],['fat','bf_fat'],['water','bf_water'],
     ['goal','bf_goal'],['weight','bf_weight'],['unit','bf_unit'],['iw','bf_iw']
   ];
-
-  // Write to localStorage — works because this tab is top-level
   try{
     keys.forEach(function(k){
       var val = urlParams.get(k[0]);
       if(val !== null) localStorage.setItem(k[1], val);
     });
   }catch(e){ console.warn('localStorage write failed:', e); }
-
-  // Navigate THIS tab to the CPA locker.
-  // CPAGrip will redirect to thankyou.html after offer completion.
-  window.location.replace('https://ridefiles.net/1897560');
+  // No automatic redirect — user taps the button (native gesture, never blocked)
 })();
 </script>
 </body>
