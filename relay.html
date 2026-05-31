@@ -16,12 +16,42 @@
 <p>Loading your personal results…</p>
 <script>
 (function(){
-  var aff_sub = new URLSearchParams(window.location.search).get('aff_sub');
-  if(aff_sub){
-    window.location.replace('thankyou.html?' + decodeURIComponent(aff_sub));
-  } else {
-    window.location.replace('thankyou.html');
+  var raw = new URLSearchParams(window.location.search).get('aff_sub');
+  if(!raw){ window.location.replace('thankyou.html'); return; }
+
+  var sub = decodeURIComponent(raw);
+
+  // Fallback path: full params were encoded directly (npoint failed)
+  if(sub.indexOf('fb_') === 0){
+    var params = decodeURIComponent(sub.slice(3));
+    window.location.replace('thankyou.html?' + params);
+    return;
   }
+
+  // Normal path: sub is a npoint ID — fetch the stored data
+  fetch('https://api.npoint.io/' + sub)
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      var params = [
+        'cal='       + encodeURIComponent(d.cal       || ''),
+        'bmi='       + encodeURIComponent(d.bmi       || ''),
+        'bmi_label=' + encodeURIComponent(d.bmi_label || ''),
+        'bmr='       + encodeURIComponent(d.bmr       || ''),
+        'tdee='      + encodeURIComponent(d.tdee      || ''),
+        'prot='      + encodeURIComponent(d.prot      || ''),
+        'carb='      + encodeURIComponent(d.carb      || ''),
+        'fat='       + encodeURIComponent(d.fat       || ''),
+        'water='     + encodeURIComponent(d.water     || ''),
+        'goal='      + encodeURIComponent(d.goal      || ''),
+        'weight='    + encodeURIComponent(d.weight    || ''),
+        'unit='      + encodeURIComponent(d.unit      || ''),
+        'iw='        + encodeURIComponent(d.iw        || '')
+      ].join('&');
+      window.location.replace('thankyou.html?' + params);
+    })
+    .catch(function(){
+      window.location.replace('thankyou.html');
+    });
 })();
 </script>
 </body>

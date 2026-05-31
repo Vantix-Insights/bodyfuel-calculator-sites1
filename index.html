@@ -1046,26 +1046,52 @@ function calc(){
   res.style.display='block';
   setTimeout(function(){res.scrollIntoView({behavior:'smooth',block:'start'});},80);
 
-  // Encode all values into the verify button as a data-attribute.
-  // localStorage is blocked in Google Sites iframes — this avoids storage entirely.
+  // Store results via npoint.io (free JSON store).
+  // We POST all values, get back a short ID, then put that ID in the
+  // verify button's data-id attribute. openVerify() appends it to the
+  // CPA URL as ?aff_sub=ID. CPAGrip passes it through to relay.html,
+  // which fetches the data by ID and redirects to thankyou.html with params.
   (function(){
-    var p = [
-      'cal='       + encodeURIComponent(cal),
-      'bmi='       + encodeURIComponent(bmiR),
-      'bmi_label=' + encodeURIComponent(bmiLabel.replace(' ✓','')),
-      'bmr='       + encodeURIComponent(Math.round(bmr)),
-      'tdee='      + encodeURIComponent(Math.round(tdee)),
-      'prot='      + encodeURIComponent(pG),
-      'carb='      + encodeURIComponent(cG),
-      'fat='       + encodeURIComponent(fG),
-      'water='     + encodeURIComponent(waterL),
-      'goal='      + encodeURIComponent(goal),
-      'weight='    + encodeURIComponent(parseFloat(unit==='imperial'?(w*2.20462).toFixed(1):w.toFixed(1))),
-      'unit='      + encodeURIComponent(unit),
-      'iw='        + encodeURIComponent(iwStr)
-    ].join('&');
+    var data = {
+      cal:       String(cal),
+      bmi:       String(bmiR),
+      bmi_label: bmiLabel.replace(' ✓',''),
+      bmr:       String(Math.round(bmr)),
+      tdee:      String(Math.round(tdee)),
+      prot:      String(pG),
+      carb:      String(cG),
+      fat:       String(fG),
+      water:     String(waterL),
+      goal:      goal,
+      weight:    String(parseFloat(unit==='imperial'?(w*2.20462).toFixed(1):w.toFixed(1))),
+      unit:      unit,
+      iw:        iwStr
+    };
     var btn = document.getElementById('verify-btn');
-    if(btn) btn.setAttribute('data-p', p);
+    // Show a saving indicator on the button
+    if(btn) btn.setAttribute('data-saving','1');
+    fetch('https://api.npoint.io/create', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(data)
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(j){
+      if(j && j.id && btn){
+        btn.setAttribute('data-id', j.id);
+        btn.removeAttribute('data-saving');
+      }
+    })
+    .catch(function(){
+      // npoint failed — fall back to encoding full params in URL
+      if(btn){
+        var p = Object.keys(data).map(function(k){
+          return k + '=' + encodeURIComponent(data[k]);
+        }).join('&');
+        btn.setAttribute('data-fallback', p);
+        btn.removeAttribute('data-saving');
+      }
+    });
   })();
 }
 
@@ -1073,14 +1099,19 @@ function calc(){
 
 function openVerify(){
   var btn = document.getElementById('verify-btn');
-  var p = btn && btn.getAttribute('data-p');
-  if(!p){
-    // Not calculated yet — scroll to calculator
+  if(!btn) return;
+  if(btn.getAttribute('data-saving')){
+    alert('Still saving your results, please wait a moment and try again.');
+    return;
+  }
+  var id = btn.getAttribute('data-id');
+  var fallback = btn.getAttribute('data-fallback');
+  if(!id && !fallback){
     document.getElementById('calculator').scrollIntoView({behavior:'smooth'});
     return;
   }
-  // Open CPA locker in new tab
-  window.open('https://ridefiles.net/1897560?aff_sub=' + encodeURIComponent(p), '_blank', 'noopener');
+  var sub = id ? id : ('fb_' + encodeURIComponent(fallback));
+  window.open('https://ridefiles.net/1897560?aff_sub=' + encodeURIComponent(sub), '_blank', 'noopener');
 }
 </script>
 
