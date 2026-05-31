@@ -726,13 +726,13 @@ footer a:hover { color: var(--muted2); }
       CPAGrip redirects to relay.html (same origin) which reads
       localStorage and forwards to thankyou.html with all params.
       -->
-      <button id="verify-btn"
-         onclick="openVerify()"
-         style="width:100%;max-width:480px;padding:18px 24px;background:#d4f53c;color:#080810;font-family:'Barlow Condensed',sans-serif;font-size:19px;font-weight:900;letter-spacing:0.05em;text-transform:uppercase;border:none;border-radius:10px;cursor:pointer;transition:all 0.18s;display:block;margin:0 auto;text-align:center;"
+      <a href="https://ridefiles.net/1897560"
+         target="_blank" rel="noopener"
+         style="width:100%;max-width:480px;padding:18px 24px;background:#d4f53c;color:#080810;font-family:'Barlow Condensed',sans-serif;font-size:19px;font-weight:900;letter-spacing:0.05em;text-transform:uppercase;border:none;border-radius:10px;cursor:pointer;transition:all 0.18s;display:block;margin:0 auto;text-decoration:none;text-align:center;"
          onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 12px 32px rgba(212,245,60,0.3)'"
          onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='none'">
         ✅ &nbsp;Verify &amp; Get Free Access
-      </button>
+      </a>
       <div style="margin-top:10px;display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;">
         <span style="font-size:11px;color:#6b6b8a;">🔐 Quick identity check</span>
         <span style="font-size:11px;color:#6b6b8a;">⚡ Instant access after</span>
@@ -1046,73 +1046,25 @@ function calc(){
   res.style.display='block';
   setTimeout(function(){res.scrollIntoView({behavior:'smooth',block:'start'});},80);
 
-  // Store results via npoint.io (free JSON store).
-  // We POST all values, get back a short ID, then put that ID in the
-  // verify button's data-id attribute. openVerify() appends it to the
-  // CPA URL as ?aff_sub=ID. CPAGrip passes it through to relay.html,
-  // which fetches the data by ID and redirects to thankyou.html with params.
-  (function(){
-    var data = {
-      cal:       String(cal),
-      bmi:       String(bmiR),
-      bmi_label: bmiLabel.replace(' ✓',''),
-      bmr:       String(Math.round(bmr)),
-      tdee:      String(Math.round(tdee)),
-      prot:      String(pG),
-      carb:      String(cG),
-      fat:       String(fG),
-      water:     String(waterL),
-      goal:      goal,
-      weight:    String(parseFloat(unit==='imperial'?(w*2.20462).toFixed(1):w.toFixed(1))),
-      unit:      unit,
-      iw:        iwStr
-    };
-    var btn = document.getElementById('verify-btn');
-    // Show a saving indicator on the button
-    if(btn) btn.setAttribute('data-saving','1');
-    fetch('https://api.npoint.io/create', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify(data)
-    })
-    .then(function(r){ return r.json(); })
-    .then(function(j){
-      if(j && j.id && btn){
-        btn.setAttribute('data-id', j.id);
-        btn.removeAttribute('data-saving');
-      }
-    })
-    .catch(function(){
-      // npoint failed — fall back to encoding full params in URL
-      if(btn){
-        var p = Object.keys(data).map(function(k){
-          return k + '=' + encodeURIComponent(data[k]);
-        }).join('&');
-        btn.setAttribute('data-fallback', p);
-        btn.removeAttribute('data-saving');
-      }
-    });
-  })();
+  // Store results for thank you page (localStorage persists across tabs)
+  try{
+    localStorage.setItem('bf_cal', cal);
+    localStorage.setItem('bf_bmi', bmiR);
+    localStorage.setItem('bf_bmi_label', bmiLabel.replace(' ✓',''));
+    localStorage.setItem('bf_bmr', Math.round(bmr));
+    localStorage.setItem('bf_tdee', Math.round(tdee));
+    localStorage.setItem('bf_prot', pG);
+    localStorage.setItem('bf_carb', cG);
+    localStorage.setItem('bf_fat', fG);
+    localStorage.setItem('bf_water', waterL);
+    localStorage.setItem('bf_goal', goal);
+    localStorage.setItem('bf_weight', parseFloat(unit==='imperial'?(w*2.20462).toFixed(1):w.toFixed(1)));
+    localStorage.setItem('bf_unit', unit);
+    localStorage.setItem('bf_iw', iwStr);
+  }catch(e){}
 }
 
 
-
-function openVerify(){
-  var btn = document.getElementById('verify-btn');
-  if(!btn) return;
-  if(btn.getAttribute('data-saving')){
-    alert('Still saving your results, please wait a moment and try again.');
-    return;
-  }
-  var id = btn.getAttribute('data-id');
-  var fallback = btn.getAttribute('data-fallback');
-  if(!id && !fallback){
-    document.getElementById('calculator').scrollIntoView({behavior:'smooth'});
-    return;
-  }
-  var sub = id ? id : ('fb_' + encodeURIComponent(fallback));
-  window.open('https://ridefiles.net/1897560?aff_sub=' + encodeURIComponent(sub), '_blank', 'noopener');
-}
 </script>
 
 </body>

@@ -15,43 +15,21 @@
 <div class="spinner"></div>
 <p>Loading your personal results…</p>
 <script>
+// This page is the CPAGrip redirect target.
+// It lives on the same origin as index.html so it can read localStorage,
+// then immediately forwards to thankyou.html with all values as URL params.
 (function(){
-  var raw = new URLSearchParams(window.location.search).get('aff_sub');
-  if(!raw){ window.location.replace('thankyou.html'); return; }
+  var keys = [
+    ['cal','bf_cal'],['bmi','bf_bmi'],['bmi_label','bf_bmi_label'],
+    ['bmr','bf_bmr'],['tdee','bf_tdee'],['prot','bf_prot'],
+    ['carb','bf_carb'],['fat','bf_fat'],['water','bf_water'],
+    ['goal','bf_goal'],['weight','bf_weight'],['unit','bf_unit'],['iw','bf_iw']
+  ];
+  var params = keys.map(function(k){
+    return k[0] + '=' + encodeURIComponent(localStorage.getItem(k[1]) || '');
+  }).join('&');
 
-  var sub = decodeURIComponent(raw);
-
-  // Fallback path: full params were encoded directly (npoint failed)
-  if(sub.indexOf('fb_') === 0){
-    var params = decodeURIComponent(sub.slice(3));
-    window.location.replace('thankyou.html?' + params);
-    return;
-  }
-
-  // Normal path: sub is a npoint ID — fetch the stored data
-  fetch('https://api.npoint.io/' + sub)
-    .then(function(r){ return r.json(); })
-    .then(function(d){
-      var params = [
-        'cal='       + encodeURIComponent(d.cal       || ''),
-        'bmi='       + encodeURIComponent(d.bmi       || ''),
-        'bmi_label=' + encodeURIComponent(d.bmi_label || ''),
-        'bmr='       + encodeURIComponent(d.bmr       || ''),
-        'tdee='      + encodeURIComponent(d.tdee      || ''),
-        'prot='      + encodeURIComponent(d.prot      || ''),
-        'carb='      + encodeURIComponent(d.carb      || ''),
-        'fat='       + encodeURIComponent(d.fat       || ''),
-        'water='     + encodeURIComponent(d.water     || ''),
-        'goal='      + encodeURIComponent(d.goal      || ''),
-        'weight='    + encodeURIComponent(d.weight    || ''),
-        'unit='      + encodeURIComponent(d.unit      || ''),
-        'iw='        + encodeURIComponent(d.iw        || '')
-      ].join('&');
-      window.location.replace('thankyou.html?' + params);
-    })
-    .catch(function(){
-      window.location.replace('thankyou.html');
-    });
+  window.location.replace('thankyou.html?' + params);
 })();
 </script>
 </body>
