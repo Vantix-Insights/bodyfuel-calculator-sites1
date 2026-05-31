@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>BodyFuel – Preparing your results…</title>
+<title>BodyFuel – Saving your results…</title>
 <style>
   body{background:#080810;color:#eeeef5;font-family:sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;flex-direction:column;gap:16px;}
   .spinner{width:36px;height:36px;border:3px solid #252535;border-top-color:#d4f53c;border-radius:50%;animation:spin 0.7s linear infinite;}
@@ -13,15 +13,12 @@
 </head>
 <body>
 <div class="spinner"></div>
-<p>Preparing your personal results…</p>
+<p>Saving your results…</p>
 <script>
-// relay.html loads TOP-LEVEL in a new tab (not inside any iframe).
-// So localStorage writes work freely here — no iframe storage restrictions.
-//
-// Step 1: Read all calc values from our own URL params (passed by index.html)
-// Step 2: Save them to localStorage on this origin (vantix-insights.github.io)
-// Step 3: Redirect to the CPA locker
-// Later: CPAGrip redirects to thankyou.html, which reads localStorage.
+// relay.html opens as a NEW TAB (top-level, not in iframe).
+// It can freely write localStorage on this origin.
+// After saving, it redirects THIS tab to the CPA locker.
+// CPAGrip redirect URL must be set to thankyou.html (not relay.html).
 
 (function(){
   var urlParams = new URLSearchParams(window.location.search);
@@ -33,7 +30,7 @@
     ['goal','bf_goal'],['weight','bf_weight'],['unit','bf_unit'],['iw','bf_iw']
   ];
 
-  // Save to localStorage — works here because we're top-level, not in an iframe
+  // Write to localStorage — works because this tab is top-level
   try{
     keys.forEach(function(k){
       var val = urlParams.get(k[0]);
@@ -41,7 +38,8 @@
     });
   }catch(e){ console.warn('localStorage write failed:', e); }
 
-  // Redirect to CPA locker
+  // Navigate THIS tab to the CPA locker.
+  // CPAGrip will redirect to thankyou.html after offer completion.
   window.location.replace('https://ridefiles.net/1897560');
 })();
 </script>
