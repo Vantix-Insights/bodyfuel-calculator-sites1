@@ -798,18 +798,20 @@ function submitGateEmail(){
     .catch(function(err){ console.warn('Brevo email error:', err); });
 
   // ── Add contact to Brevo list ──
+  // Step 1: Create/update the contact
   fetch('https://api.brevo.com/v3/contacts', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'api-key': BREVO_API_KEY
-    },
-    body: JSON.stringify({
-      email: email,
-      listIds: [7],
-      updateEnabled: true
-    })
-  }).then(function(r){ return r.json().then(function(d){ console.log('Brevo contact response:', r.status, d); }); })
+    headers: { 'Content-Type': 'application/json', 'api-key': BREVO_API_KEY },
+    body: JSON.stringify({ email: email, listIds: [7], updateEnabled: true })
+  }).then(function(r){ return r.json().then(function(d){
+    console.log('Brevo contact create/update:', r.status, d);
+    // Step 2: If contact already existed (204/400 duplicate), also try addContactToList
+    return fetch('https://api.brevo.com/v3/contacts/lists/7/contacts/add', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'api-key': BREVO_API_KEY },
+      body: JSON.stringify({ emails: [email] })
+    });
+  }}).then(function(r){ if(r) return r.json().then(function(d){ console.log('Brevo addToList:', r.status, d); }); })
     .catch(function(err){ console.warn('Brevo contact error:', err); });
 
 
