@@ -725,8 +725,8 @@ footer a:hover { color: var(--muted2); }
       URL Locker — direct link, no JS needed
       -->
       <a id="verify-btn"
-         href="https://ridefiles.net/1897560"
-         target="_blank" rel="noopener"
+         href="#"
+         onclick="openVerify(event)"
          style="width:100%;max-width:480px;padding:18px 24px;background:#d4f53c;color:#080810;font-family:'Barlow Condensed',sans-serif;font-size:19px;font-weight:900;letter-spacing:0.05em;text-transform:uppercase;border:none;border-radius:10px;cursor:pointer;transition:all 0.18s;display:block;margin:0 auto;text-decoration:none;text-align:center;"
          onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 12px 32px rgba(212,245,60,0.3)'"
          onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='none'">
@@ -1062,16 +1062,22 @@ function calc(){
     'unit='      + encodeURIComponent(unit),
     'iw='        + encodeURIComponent(iwStr)
   ].join('&');
-  // Store on the button as href so clicking is a native link tap (never blocked by mobile popup blockers)
+  // Store params on button so openVerify() can read them
   var btn = document.getElementById('verify-btn');
-  if(btn){
-    var relayURL = 'https://vantix-insights.github.io/bodyfuel-calculator-sites1/relay.html?' + params;
-    btn.setAttribute('href', relayURL);
-  }
+  if(btn) btn.setAttribute('data-p', params);
 }
 
-// openVerify no longer needed — button href is set directly by calc()
-// Fallback: if calc hasn't run yet, href stays as CPA locker direct link
+function openVerify(e){
+  e.preventDefault();
+  var btn = document.getElementById('verify-btn');
+  var params = btn ? btn.getAttribute('data-p') : '';
+  if(!params){
+    window.open('https://ridefiles.net/1897560', '_blank');
+    return;
+  }
+  var relayURL = 'https://vantix-insights.github.io/bodyfuel-calculator-sites1/relay.html?' + params;
+  window.open(relayURL, '_blank');
+}
 
 
 </script>
