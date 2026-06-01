@@ -898,10 +898,10 @@ function calc(){
   var errEl=document.getElementById('err');
 
   // Validate with unit-aware minimums (inputs are still in user's unit at this point)
-  var minW = unit==='imperial' ? 44  : 20;  // 44 lbs ≈ 20 kg
-  var minH = unit==='imperial' ? 48  : 100; // 48 in ≈ 122 cm
-  var maxW = unit==='imperial' ? 660 : 300; // 660 lbs ≈ 300 kg
-  var maxH = unit==='imperial' ? 96  : 250; // 96 in = 8 ft
+  var minW = unit==='imperial' ? 44  : 20;  // 44 lbs = 20.0 kg
+  var minH = unit==='imperial' ? 39  : 100; // 39 in = 99.1 cm ≈ 100 cm
+  var maxW = unit==='imperial' ? 662 : 300; // 662 lbs = 300.3 kg ≈ 300 kg
+  var maxH = unit==='imperial' ? 99  : 250; // 99 in = 251.5 cm ≈ 250 cm
 
   if(!age||!w||!h||age<15||age>100||w<minW||w>maxW||h<minH||h>maxH){
     errEl.style.display='block';return;
