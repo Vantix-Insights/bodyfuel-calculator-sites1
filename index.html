@@ -447,13 +447,13 @@ footer a:hover { color: var(--muted2); }
     <!-- Weight -->
     <div class="fg">
       <label id="wlabel">Weight (kg)</label>
-      <input type="number" id="weight" placeholder="e.g. 72" min="30"/>
+      <input type="number" id="weight" placeholder="e.g. 72"/>
       <div class="field-note">Use your current body weight.</div>
     </div>
     <!-- Height -->
     <div class="fg">
       <label id="hlabel">Height (cm)</label>
-      <input type="number" id="height" placeholder="e.g. 175" min="100"/>
+      <input type="number" id="height" placeholder="e.g. 175"/>
       <div class="field-note">Stand straight, no shoes.</div>
     </div>
     <!-- Body fat (optional) -->
@@ -897,7 +897,15 @@ function calc(){
   var act=parseFloat(document.getElementById('activity').value);
   var errEl=document.getElementById('err');
 
-  if(!age||!w||!h||age<15||age>100||w<30||h<100){errEl.style.display='block';return;}
+  // Validate with unit-aware minimums (inputs are still in user's unit at this point)
+  var minW = unit==='imperial' ? 66  : 30;  // 66 lbs ≈ 30 kg
+  var minH = unit==='imperial' ? 48  : 100; // 48 in ≈ 122 cm
+  var maxW = unit==='imperial' ? 660 : 300; // 660 lbs ≈ 300 kg
+  var maxH = unit==='imperial' ? 96  : 250; // 96 in = 8 ft
+
+  if(!age||!w||!h||age<15||age>100||w<minW||w>maxW||h<minH||h>maxH){
+    errEl.style.display='block';return;
+  }
   errEl.style.display='none';
 
   // convert imperial
@@ -918,6 +926,9 @@ function calc(){
     'aggressive-loss':-750,'lose':-500,'maintain':0,'gain':300,'aggressive-gain':500
   }[goal]||0;
   var cal=Math.round(tdee+delta);
+  // Safety floor — never go below minimum safe intake
+  var calFloor = gender==='female' ? 1200 : 1500;
+  if(cal < calFloor) cal = calFloor;
 
   // Macro ratios
   var ratios={

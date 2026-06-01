@@ -400,7 +400,7 @@ footer a{color:var(--muted);text-decoration:underline;}
         <p class="gate-desc">
           Resources 5–12 include everything you need to actually <strong>execute</strong> this plan — the grocery list, plateau protocol, progress tracker, eating out guide, sleep nutrition, supplement truth sheet, mindset framework, and your personalized 12-week roadmap with your exact projected weight at Week 4, 8, and 12.
           <br><br>
-          <strong>When the timer hits zero your personal data clears.</strong> Enter your email and we send everything to your inbox permanently.
+          <strong>When the timer hits zero your personal data clears.</strong> Enter your email and we send everything to your inbox permanently — accessible from any device, any time, forever.
         </p>
 
         <!-- 8 locked items -->
@@ -456,7 +456,7 @@ footer a{color:var(--muted);text-decoration:underline;}
       <div class="uc-icon">📬</div>
       <div class="uc-text">
         <h3>All 12 Resources Are On Their Way</h3>
-        <p>We've emailed everything to <strong id="confirmed-email" style="color:var(--lime);"></strong> — it should arrive within 2 minutes. If you don't see it, <strong style="color:var(--text);">check your spam or junk folder</strong> and mark it as not spam. Resources 5–12 are now visible below.</p>
+        <p>We've emailed everything to <strong id="confirmed-email" style="color:var(--lime);"></strong> — it should arrive within 2 minutes. If you don't see it, <strong style="color:var(--text);">check your spam or junk folder</strong> and mark it as not spam so future emails land in your inbox. Resources 5–12 are now visible below.</p>
       </div>
     </div>
 
@@ -660,18 +660,21 @@ if(cal&&bmi&&tdee){
 // ── Populate personalized roadmap ──
 function buildRoadmap(){
   if(!weight||!goal) return;
+  // rate is kg/month. weight is stored in display unit (kg or lbs).
+  // Convert weight to kg first for calculation, then display back in user's unit.
+  var weightKg = unit==='imperial' ? weight/2.20462 : weight;
   var rateMap={'aggressive-loss':-0.75,'lose':-0.5,'maintain':0,'gain':0.3,'aggressive-gain':0.5};
   var rate=rateMap[goal]||0;
   var u=unit==='imperial'?'lbs':'kg';
-  function w(wks){
-    var kg2=weight+(rate*wks);
+  function wAt(months){
+    var kg2=weightKg+(rate*months);
     return unit==='imperial'?(kg2*2.20462).toFixed(1):kg2.toFixed(1);
   }
-  document.getElementById('rm-w0').textContent=weight+' '+u;
-  document.getElementById('rm-w4').textContent=w(4)+' '+u;
-  document.getElementById('rm-w8').textContent=w(8)+' '+u;
-  document.getElementById('rm-w10').textContent=w(9.5)+' '+u+' (after diet break)';
-  document.getElementById('rm-w12').textContent=w(11.5)+' – '+w(12)+' '+u;
+  document.getElementById('rm-w0').textContent=(unit==='imperial'?(weightKg*2.20462).toFixed(1):weightKg.toFixed(1))+' '+u;
+  document.getElementById('rm-w4').textContent=wAt(1)+' '+u;   // week 4  ≈ 1 month
+  document.getElementById('rm-w8').textContent=wAt(2)+' '+u;   // week 8  ≈ 2 months
+  document.getElementById('rm-w10').textContent=wAt(2.4)+' '+u+' (after diet break)'; // week 10 ≈ 2.4 months
+  document.getElementById('rm-w12').textContent=wAt(2.9)+' – '+wAt(3)+' '+u; // week 12 ≈ 3 months
 }
 buildRoadmap();
 
@@ -807,8 +810,6 @@ function submitGateEmail(){
     return r.json().then(function(d){ console.log('Brevo contact:', r.status, d); });
   }).catch(function(err){ console.warn('Brevo contact error:', err); });
 
-
-  
 
   // Hide gate wall, show locked resources
   document.getElementById('email-gate').style.display='none';
